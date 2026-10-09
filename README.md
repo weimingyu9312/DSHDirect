@@ -147,8 +147,8 @@ implementation behind both surfaces.
 ### 1. CLI only
 
 ```powershell
-git clone https://github.com/OWNER/dsh-mcp-direct.git
-cd dsh-mcp-direct\packages\cli
+git clone https://github.com/weimingyu9312/DSHDirect.git
+cd DSHDirect\packages\cli
 node mcp-direct.js list
 ```
 

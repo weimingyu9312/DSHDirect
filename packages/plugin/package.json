@@ -45,11 +45,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OWNER/dsh-mcp-direct.git",
+    "url": "git+https://github.com/weimingyu9312/DSHDirect.git",
     "directory": "packages/plugin"
   },
   "bugs": {
-    "url": "https://github.com/OWNER/dsh-mcp-direct/issues"
+    "url": "https://github.com/weimingyu9312/DSHDirect/issues"
   },
-  "homepage": "https://github.com/OWNER/dsh-mcp-direct#readme"
+  "homepage": "https://github.com/weimingyu9312/DSHDirect#readme"
 }
