@@ -33,3 +33,6 @@ desktop.ini
 .env
 .env.*
 !.env.example
+
+# Packed release artifacts
+dist/
