@@ -439,13 +439,36 @@ function flattenContent(content) {
  * ------------------------------------------------------------------ */
 
 /**
+ * Decide the launcher directory for a given home directory.
+ *
+ * Extracted from defaultBinDir() so the layout rule is unit-testable in
+ * isolation: a home ending in `<bin>/tools/dsh-mcp-direct` means launchers go
+ * two levels up (the PATH directory); any other home is used as-is. An explicit
+ * MCPD_HOME always wins and is used verbatim.
+ *
+ * @param {string} home - the mcp-direct home directory.
+ * @param {boolean} explicitHome - whether the home came from MCPD_HOME.
+ * @returns {string} directory for generated launchers.
+ */
+function binDirForHome(home, explicitHome) {
+    if (explicitHome) return home;
+    const parts = home.split(path.sep).filter(Boolean);
+    if (parts.length >= 2 && parts[parts.length - 1] === 'dsh-mcp-direct' && parts[parts.length - 2] === 'tools') {
+        return path.dirname(path.dirname(home));
+    }
+    return home;
+}
+
+/**
  * Default directory holding the generated global `<name>-mcp.cmd` launchers.
  *
- * Defaults to the mcp-direct home (the install directory), which is expected to
- * be on the user PATH. Pass `--bin-dir` to place them elsewhere.
+ * The launcher has to land where the user's PATH already looks, so it follows
+ * the same `<bin>/tools/dsh-mcp-direct` convention the plugin host uses.
+ *
+ * @returns {string} directory for generated launchers.
  */
 function defaultBinDir() {
-    return homeDir();
+    return binDirForHome(homeDir(), process.env[HOME_ENV_VAR] !== undefined);
 }
 
 /** Default directory holding generated per-server skills. */
@@ -707,6 +730,7 @@ module.exports = {
     homeDir,
     defaultRegistryPath,
     defaultBinDir,
+    binDirForHome,
     defaultSkillsDir,
     findElectronExecutable,
     resolveSdk,

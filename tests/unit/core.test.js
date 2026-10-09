@@ -136,6 +136,18 @@ test('MCPD_HOME redirects the registry and launcher directory', (t) => {
     assert.equal(core.defaultBinDir(), home);
 });
 
+test('binDirForHome honours the <bin>/tools/dsh-mcp-direct layout', () => {
+    // A home at <bin>/tools/dsh-mcp-direct places launchers two levels up (the
+    // PATH directory), matching the plugin host. An explicit MCPD_HOME wins.
+    const home = path.join('C:', '', 'bin', 'tools', 'dsh-mcp-direct');
+    assert.equal(core.binDirForHome(home, false), path.join('C:', '', 'bin'));
+    assert.equal(core.binDirForHome(home, true), home);
+
+    // A plain checkout (packages/cli) uses the home itself.
+    const checkout = path.join('R:', '', 'repo', 'packages', 'cli');
+    assert.equal(core.binDirForHome(checkout, false), checkout);
+});
+
 test('generateCommand writes a BOM-free launcher that pins MCPD_SERVER', (t) => {
     const dir = tempDir(t);
     const file = core.generateCommand('echo', { binDir: dir, toolDir: path.join(dir, 'tool') });
