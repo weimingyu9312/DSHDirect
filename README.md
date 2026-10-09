@@ -2,6 +2,8 @@
 
 > 把原本独立的 MCP 直连管理器 `dsh-mcp-direct` 封装成 DSH 持久化插件，并在 Web GUI 内提供 MCP 服务器管理界面。绕开 DSH 自带的 `@deepseek-ai/dsh-mcp-client` 导致的 Desktop 宿主 V8 OOM 崩溃。
 
+**Also available in [中文 (README.zh-CN.md)](README.zh-CN.md).**
+
 # dsh-mcp-direct
 
 **A direct MCP client and manager for DeepSeek Harness that never registers a model tool.**
