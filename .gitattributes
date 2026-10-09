@@ -1,0 +1,10 @@
+# Normalize line endings: LF in the repository for every source file.
+* text=auto
+
+*.js    text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.cmd   text eol=crlf
+*.bat   text eol=crlf
+*.svg   text eol=lf

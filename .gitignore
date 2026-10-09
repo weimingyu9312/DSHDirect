@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Runtime state — the registry is per-machine and must never be committed
+servers.json
+*.local.json
+.mcpd/
+
+# Generated launchers and skills (produced by `mcp-direct add`)
+*-mcp.cmd
+*-mcp.ps1
+*-mcp/
+
+# Logs and scratch output
+*.log
+logs/
+.tmp/
+.run/
+tmp/
+
+# Editor and OS noise
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets
+.env
+.env.*
+!.env.example

@@ -1,0 +1,34 @@
+# dsh-mcp-direct — MCP server manager (direct client, no host tool registration).
+#
+# Why this bundle exists instead of @deepseek-ai/dsh-mcp-client: that bridge
+# registers every MCP tool into ctx.tools, and on this machine that OOM-crashes
+# the Desktop host on load. This plugin deliberately keeps every MCP connection
+# in its own process and exposes management to the GUI over a loopback bridge.
+#
+# This row is intentionally config-free.
+#
+# The profile runs with `patchReload: live`, so a config value here forces the
+# entry to be updated and reconciled on every enable/disable. Combined with the
+# `disabled: true` row the Plugin Manager writes into the profile's own patch,
+# that produced a reconcile loop: the Host reloaded repeatedly and live page
+# connections died with ECONNRESET, which surfaced as a frozen conversation.
+#
+# Every path this plugin needs is detected in index.js:
+#   toolDir       MCPD_HOME, else <home>/.dsh/tools/dsh-mcp-direct, else the
+#                 first PATH entry containing tools/dsh-mcp-direct.
+#                 Override with config.toolDir only if you relocate the CLI.
+#   registryPath  <toolDir>/servers.json — shared with the mcp-direct CLI, so
+#                 the GUI and the `mcp-direct` / `<name>-mcp` commands agree.
+#   binDir        MCPD_HOME, else the PATH directory for a tools/dsh-mcp-direct
+#                 layout, else toolDir. Receives the generated <name>-mcp.cmd
+#                 launchers, so it must be a directory that is already on PATH.
+#   skillsDir     %USERPROFILE%\.dsh\skills, which receives generated
+#                 <name>-mcp/SKILL.md skills.
+#   probeTimeoutMs 8000 ms per-server connect timeout while listing/probing.
+#
+# Set any of these under `config:` only if you relocate the CLI. Note that a
+# non-default value makes this row non-default too, which the live patch reload
+# will reconcile on every enable/disable — do not restate a default here.
+- insert:
+    - id: mcp-direct
+      name: dsh-mcp-direct

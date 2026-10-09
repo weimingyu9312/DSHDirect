@@ -1,0 +1,30 @@
+{
+  "name": "dsh-mcp-direct",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Direct MCP client and manager for DeepSeek Harness — host-OOM-safe, zero resident MCP memory.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/cli",
+    "packages/plugin"
+  ],
+  "scripts": {
+    "test": "node tests/run.js",
+    "test:unit": "node tests/run.js unit",
+    "test:host": "node tests/run.js host",
+    "test:e2e": "node tests/run.js e2e",
+    "pack:cli": "cd packages/cli && npm pack --dry-run",
+    "pack:plugin": "cd packages/plugin && npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OWNER/dsh-mcp-direct.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OWNER/dsh-mcp-direct/issues"
+  },
+  "homepage": "https://github.com/OWNER/dsh-mcp-direct#readme"
+}

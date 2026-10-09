@@ -1,0 +1,37 @@
+{
+  "name": "dsh-mcp-direct-cli",
+  "version": "1.0.0",
+  "description": "Direct MCP client/manager for DeepSeek Harness: connects to MCP servers in a standalone process, bypassing the OOM-crashing built-in dsh-mcp-client.",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "mcp",
+    "model-context-protocol",
+    "cli"
+  ],
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "lib/core.js",
+  "bin": {
+    "mcp-direct": "./mcp-direct.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "mcp-direct.js",
+    "lib/"
+  ],
+  "scripts": {
+    "test": "node ../../tests/run.js unit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OWNER/dsh-mcp-direct.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/OWNER/dsh-mcp-direct/issues"
+  },
+  "homepage": "https://github.com/OWNER/dsh-mcp-direct#readme"
+}

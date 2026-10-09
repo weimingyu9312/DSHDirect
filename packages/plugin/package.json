@@ -1,0 +1,55 @@
+{
+  "name": "dsh-mcp-direct",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MCP server manager for DeepSeek Harness: connects to MCP servers in a standalone process (bypassing the OOM-crashing dsh-mcp-client) and provides a management UI.",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "mcp",
+    "model-context-protocol"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings-plugins",
+        "@deepseek-ai/dsh-client-ui-plugin-manager"
+      ]
+    },
+    "meta": {
+      "title": "MCP Direct",
+      "description": "Manage MCP servers through a direct client that bypasses the OOM-crashing dsh-mcp-client."
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OWNER/dsh-mcp-direct.git",
+    "directory": "packages/plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/OWNER/dsh-mcp-direct/issues"
+  },
+  "homepage": "https://github.com/OWNER/dsh-mcp-direct#readme"
+}
