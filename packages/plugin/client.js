@@ -93,6 +93,9 @@ window.__ModuleLoader__.load({
             addDone: '已添加',
             isError: '工具返回了错误',
             advanced: '路径设置（只读）',
+            skillDir: '技能目录',
+            openSkillDir: '在文件管理器中打开',
+            openFailed: '无法打开目录：',
         };
 
         /**
@@ -521,6 +524,18 @@ window.__ModuleLoader__.load({
                 });
             }
 
+            /**
+             * Ask the host to open this server's generated skill directory in
+             * the platform file manager. The path is derived host-side, so the
+             * bridge only receives the server name.
+             * @param {object} server
+             */
+            function openSkill(server) {
+                bridge('openSkillDir', { name: server.name }).then(function (res) {
+                    setNotice(res.ok ? t('skillDir') + ': ' + res.value.dir : t('openFailed') + (res.message || res.code));
+                });
+            }
+
             if (adding) {
                 return h(AddForm, {
                     onCancel: function () { setAdding(false); },
@@ -579,6 +594,14 @@ window.__ModuleLoader__.load({
                             server.error
                                 ? h('div', { className: 'dshmcp-server-err' }, server.error)
                                 : null,
+                            h('div', { className: 'dshmcp-server-skill' },
+                                h('span', { className: 'dshmcp-mono' }, t('skillDir') + ': '),
+                                h('button', {
+                                    type: 'button',
+                                    className: 'dshmcp-skill-link',
+                                    title: t('openSkillDir'),
+                                    onClick: function () { openSkill(server); },
+                                }, server.skillDir || '—')),
                             h('div', { className: 'dshmcp-server-actions' },
                                 h(Button, {
                                     onClick: function () { testOne(server); },
@@ -631,6 +654,9 @@ window.__ModuleLoader__.load({
             '.dshmcp-server-meta{color:var(--dsw-alias-label-tertiary);font-size:12px;margin-top:2px;word-break:break-all}',
             '.dshmcp-server-err{color:var(--dsw-alias-state-error-primary);font-size:12px;margin-top:2px;word-break:break-all}',
             '.dshmcp-server-actions{display:flex;gap:6px;flex-wrap:wrap}',
+            '.dshmcp-server-skill{display:flex;align-items:baseline;gap:2px;flex-wrap:wrap;color:var(--dsw-alias-label-tertiary);font-size:12px;margin-top:2px}',
+            '.dshmcp-skill-link{background:none;border:none;padding:0;font:inherit;font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--dsw-alias-brand-text);cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:2px;word-break:break-all}',
+            '.dshmcp-skill-link:hover{color:var(--dsw-alias-brand-primary)}',
             '.dshmcp-mono{font-family:ui-monospace,Consolas,monospace;font-size:12px}',
             '.dshmcp-empty{padding:18px;text-align:center;color:var(--dsw-alias-label-secondary);border:1px dashed var(--dsw-alias-border-l2);border-radius:8px;display:flex;flex-direction:column;gap:6px}',
             '.dshmcp-hint{color:var(--dsw-alias-label-tertiary);font-size:12px}',

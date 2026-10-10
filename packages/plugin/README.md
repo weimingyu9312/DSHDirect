@@ -161,6 +161,7 @@ Under **Settings → Plugins → dsh-mcp-direct → row config**:
 4. **Call panel** — pre-fills required arguments from the schema, runs, shows the result
 5. **Add server** — both HTTP and stdio, validated identically to the host (`^[a-z0-9][a-z0-9-]*$`, `http(s)://`)
 6. **Remove** — confirms, then clears the registry entry and generated artifacts
+7. **Open skill directory** — each server row shows its generated `SKILL.md` directory (`<skillsDir>/<name>-mcp`) as a link that opens the platform file manager (explorer.exe on Windows). The path is derived host-side from the server name; the bridge never accepts a client-supplied path, and a missing skill directory is reported rather than opened.
 
 Styling uses theme tokens only, and no `@deepseek-ai/dsh-client-ui-*` package is
 imported — the client resolves only the frozen platform table (`react`,

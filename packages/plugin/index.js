@@ -449,8 +449,9 @@ export function apply(ctx, config) {
      * A server entry shaped for the GUI (never includes env/header values).
      * @param {string} name
      * @param {object} entry
+     * @param {string} skillsDir - generated-skill root; each server owns <skillsDir>/<name>-mcp.
      */
-    function serverView(name, entry) {
+    function serverView(name, entry, skillsDir) {
         return {
             name,
             transport: core.describeTransport(entry),
@@ -461,6 +462,10 @@ export function apply(ctx, config) {
             addedAt: entry.addedAt,
             headerNames: Object.keys(entry.headers || {}),
             envNames: Object.keys(entry.env || {}),
+            // The directory holding this server's generated SKILL.md, used by
+            // the GUI's "open skill directory" affordance. Derived rather than
+            // sent by the client, so a malicious page cannot point it anywhere.
+            skillDir: path.join(skillsDir, `${name}-mcp`),
         };
     }
 
@@ -515,7 +520,7 @@ export function apply(ctx, config) {
             const servers = names.map((n, i) => {
                 const entry = reg.value.servers[n];
                 const result = results[i] || { ok: false, tools: [], ms: 0, error: 'no result' };
-                return Object.assign(serverView(n, entry), {
+                return Object.assign(serverView(n, entry, paths.skillsDir), {
                     toolCount: result.tools.length,
                     ok: result.ok,
                     error: result.ok ? undefined : result.error,
@@ -658,6 +663,41 @@ export function apply(ctx, config) {
             core.saveRegistry(reg.value, paths.registryPath);
             const cleanup = core.removeArtifacts(n, { binDir: paths.binDir, skillsDir: paths.skillsDir });
             return { ok: true, value: { name: n, removed: cleanup.removed, failed: cleanup.failed } };
+        },
+
+        /**
+         * Open a server's generated skill directory in the platform file
+         * manager.
+         *
+         * The path is derived host-side from the requested server name — the
+         * client never supplies a path — and the directory must exist, so a
+         * compromised page cannot point the opener anywhere it likes.
+         */
+        async openSkillDir(request) {
+            const n = request && request.name;
+            if (!core.nameOk(n)) return { ok: false, code: 'invalid-name', message: '服务器名需为 [a-z0-9-]' };
+            const reg = readRegistry();
+            if (!reg.ok) return reg;
+            if (!reg.value.servers[n]) return { ok: false, code: 'server-missing', message: `服务器 "${n}" 未注册` };
+            const dir = path.join(paths.skillsDir, `${n}-mcp`);
+            if (!existsSync(path.join(dir, 'SKILL.md'))) {
+                return { ok: false, code: 'skill-missing', message: `技能目录不存在：${dir}` };
+            }
+            try {
+                // Explorer returns immediately and its first instance owns the
+                // window; spawn detached so the host never waits on it.
+                if (process.platform === 'win32') {
+                    const child = spawn('explorer.exe', [dir], { detached: true, stdio: 'ignore' });
+                    child.unref();
+                } else {
+                    const opener = process.platform === 'darwin' ? 'open' : 'xdg-open';
+                    const child = spawn(opener, [dir], { detached: true, stdio: 'ignore' });
+                    child.unref();
+                }
+                return { ok: true, value: { dir } };
+            } catch (error) {
+                return { ok: false, code: 'open-failed', message: errText(error) };
+            }
         },
 
         /** Call one tool and return its flattened content. */

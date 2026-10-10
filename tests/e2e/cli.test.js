@@ -33,7 +33,13 @@ const ECHO = path.join(__dirname, '..', 'fixtures', 'echo-server.js');
 function runCli(argv, options) {
     const opts = options || {};
     try {
-        const stdout = execFileSync(process.execPath, [CLI, ...argv, '--home', opts.home], {
+        // Skills are always redirected into the throwaway home so the suite
+        // never writes into the real ~/.dsh/skills directory.
+        const isAdd = argv.some((a) => a === 'add' || a === 'add-stdio');
+        const skillFlag = isAdd && argv.indexOf('--skills-dir') === -1
+            ? ['--skills-dir', path.join(opts.home, 'skills')]
+            : [];
+        const stdout = execFileSync(process.execPath, [CLI, ...skillFlag, ...argv, '--home', opts.home], {
             encoding: 'utf8',
             stdio: ['ignore', 'pipe', 'pipe'],
             timeout: 60000,
@@ -88,10 +94,10 @@ test('add-stdio registers a server and generates both artifacts', (t) => {
     assert.equal(registry.servers.echo.transport, 'stdio');
     assert.deepEqual(registry.servers.echo.args, [ECHO]);
 
-    // Launcher lands in the home directory; skill lands under it too.
+    // Launcher lands in the home directory; skill lands under home/skills.
     const launcher = path.join(home, 'echo-mcp.cmd');
     assert.equal(fs.existsSync(launcher), true, 'launcher should exist');
-    const skill = path.join(home, 'echo-mcp', 'SKILL.md');
+    const skill = path.join(home, 'skills', 'echo-mcp', 'SKILL.md');
     assert.equal(fs.existsSync(skill), true, 'skill should exist');
 
     const skillText = fs.readFileSync(skill, 'utf8');

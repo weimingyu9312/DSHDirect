@@ -27,7 +27,7 @@ const CLI_DIR = path.join(__dirname, '..', '..', 'packages', 'cli');
  * @param {string} registryPath - redirected registry so the test cannot touch real state.
  * @returns {{ routes: Array<{path: string, handler: Function}>, logs: string[], applyError?: string }}
  */
-async function applyPlugin(registryPath) {
+async function applyPlugin(registryPath, options) {
     const { apply } = await import('file:///' + PLUGIN.replace(/\\/g, '/'));
     const routes = [];
     const logs = [];
@@ -36,7 +36,9 @@ async function applyPlugin(registryPath) {
         effect(fn) { const dispose = fn(); return dispose; },
         webServer: { register(route) { routes.push(route); return () => {}; } },
     };
-    apply(ctx, { toolDir: CLI_DIR, registryPath });
+    const cfg = { toolDir: CLI_DIR, registryPath };
+    if (options && options.skillsDir) cfg.skillsDir = options.skillsDir;
+    apply(ctx, cfg);
     return { routes, logs };
 }
 
@@ -215,4 +217,76 @@ test('status always answers with a well-formed shape', async (t) => {
     );
     assert.ok(typeof body.value.registryPath === 'string');
     assert.ok(typeof body.value.serverCount === 'number');
+});
+
+test('server list carries the derived per-server skillDir', async (t) => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'mcpd-host-'));
+    t.after(() => rmSync(dir, { recursive: true, force: true }));
+    const skillsDir = path.join(dir, 'skills');
+    const registryPath = path.join(dir, 'servers.json');
+    writeFileSync(registryPath, JSON.stringify({
+        servers: { cocos: { transport: 'streamable-http', url: 'http://127.0.0.1:3100/mcp', headers: {}, addedAt: 'x' } },
+    }, null, 2), 'utf8');
+
+    const { routes } = await applyPlugin(registryPath, { skillsDir });
+    const { server, base } = await serveRoutes(routes);
+    t.after(() => server.close());
+
+    const res = await fetch(`${base}/list`, { method: 'POST', body: '{}' });
+    const body = await res.json();
+    assert.equal(body.ok, true, JSON.stringify(body));
+    assert.equal(body.value.servers[0].skillDir, path.join(skillsDir, 'cocos-mcp'));
+});
+
+test('openSkillDir derives the path host-side and rejects unknown servers', async (t) => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'mcpd-host-'));
+    t.after(() => rmSync(dir, { recursive: true, force: true }));
+    const skillsDir = path.join(dir, 'skills');
+    const registryPath = path.join(dir, 'servers.json');
+    writeFileSync(registryPath, JSON.stringify({
+        servers: { cocos: { transport: 'streamable-http', url: 'http://127.0.0.1:3100/mcp', headers: {}, addedAt: 'x' } },
+    }, null, 2), 'utf8');
+    // The skill actually exists — the handler requires it before opening.
+    const skillDir = path.join(skillsDir, 'cocos-mcp');
+    require('node:fs').mkdirSync(skillDir, { recursive: true });
+    writeFileSync(path.join(skillDir, 'SKILL.md'), '---\nname: cocos-mcp', 'utf8');
+
+    const { routes } = await applyPlugin(registryPath, { skillsDir });
+    const { server, base } = await serveRoutes(routes);
+    t.after(() => server.close());
+
+    // Valid server with an existing skill directory: the host spawns a file
+    // manager (best-effort) and reports the derived path — either way the
+    // response names the directory it was asked to open.
+    const ok = await fetch(`${base}/openSkillDir`, {
+        method: 'POST',
+        body: JSON.stringify({ name: 'cocos' }),
+    }).then((r) => r.json());
+    assert.equal(ok.ok, true, JSON.stringify(ok));
+    assert.equal(ok.value.dir, skillDir);
+
+    // The client never supplies a path, so a bogus name must be rejected and
+    // never map to an arbitrary directory.
+    const bad = await fetch(`${base}/openSkillDir`, {
+        method: 'POST',
+        body: JSON.stringify({ name: 'evil' }),
+    }).then((r) => r.json());
+    assert.equal(bad.ok, false);
+    assert.equal(bad.code, 'server-missing');
+
+    const badName = await fetch(`${base}/openSkillDir`, {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Bad Name' }),
+    }).then((r) => r.json());
+    assert.equal(badName.ok, false);
+    assert.equal(badName.code, 'invalid-name');
+
+    // A registered server whose skill directory was never generated (e.g. the
+    // file was deleted) is reported as skill-missing, not opened.
+    const noSkill = await fetch(`${base}/openSkillDir`, {
+        method: 'POST',
+        body: JSON.stringify({ name: 'ghost' }),
+    }).then((r) => r.json());
+    assert.equal(noSkill.ok, false);
+    assert.equal(noSkill.code, 'server-missing');
 });
